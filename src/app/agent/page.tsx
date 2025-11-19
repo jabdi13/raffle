@@ -7,6 +7,9 @@ export default function AgentPage() {
   const [state, setState] = useState<RaffleState | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [itemName, setItemName] = useState('')
+  const [winnerName, setWinnerName] = useState('')
+  const [isEditMode, setIsEditMode] = useState(false)
 
   useEffect(() => {
     const socket = getSocket()
@@ -14,6 +17,17 @@ export default function AgentPage() {
     socket.on('sync-state', (newState: RaffleState) => {
       setState(newState)
       setIsLoading(false)
+
+      // Populate form with current item data for editing
+      if (newState.currentItem) {
+        setItemName(newState.currentItem.name)
+        setWinnerName(newState.currentItem.winner?.name || '')
+        setIsEditMode(true)
+      } else {
+        setItemName('')
+        setWinnerName('')
+        setIsEditMode(false)
+      }
     })
 
     socket.on('error', (err: { message: string }) => {
@@ -28,9 +42,38 @@ export default function AgentPage() {
     }
   }, [])
 
-  const handleRaffle = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!itemName.trim() || !winnerName.trim()) {
+      setError('Both item name and winner name are required')
+      setTimeout(() => setError(null), 3000)
+      return
+    }
     setIsLoading(true)
-    getSocket().emit('raffle')
+
+    if (isEditMode && state?.currentItem) {
+      // Update existing item
+      getSocket().emit('update-winner', {
+        itemId: state.currentItem.id,
+        itemName: itemName.trim(),
+        winnerName: winnerName.trim()
+      })
+    } else {
+      // Record new item
+      getSocket().emit('record-winner', {
+        itemName: itemName.trim(),
+        winnerName: winnerName.trim()
+      })
+      // Clear form for new entry
+      setItemName('')
+      setWinnerName('')
+    }
+  }
+
+  const handleNew = () => {
+    setItemName('')
+    setWinnerName('')
+    setIsEditMode(false)
   }
 
   const handleNext = () => {
@@ -44,7 +87,7 @@ export default function AgentPage() {
   }
 
   const handleReset = () => {
-    if (confirm('Are you sure you want to reset the entire raffle? This will clear all winners.')) {
+    if (confirm('Are you sure you want to clear all records?')) {
       setIsLoading(true)
       getSocket().emit('reset')
     }
@@ -64,7 +107,7 @@ export default function AgentPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Raffle Control Panel</h1>
@@ -79,7 +122,7 @@ export default function AgentPage() {
               onClick={handleReset}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition"
             >
-              Reset Raffle
+              Clear All
             </button>
           </div>
         </div>
@@ -91,54 +134,62 @@ export default function AgentPage() {
           </div>
         )}
 
-        {/* Progress */}
-        <div className="mb-8 p-4 bg-gray-800 rounded-lg">
-          <div className="flex justify-between items-center mb-2">
-            <span>Progress</span>
-            <span>{state.progress.current} / {state.progress.total} items raffled</span>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="mb-8 p-6 bg-gray-800 rounded-lg">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">
+              {isEditMode ? 'Edit Record' : 'Record New Winner'}
+            </h2>
+            {isEditMode && (
+              <button
+                type="button"
+                onClick={handleNew}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition text-sm"
+              >
+                + New Entry
+              </button>
+            )}
           </div>
-          <div className="w-full bg-gray-700 rounded-full h-2">
-            <div
-              className="bg-blue-500 h-2 rounded-full transition-all"
-              style={{ width: `${(state.progress.current / state.progress.total) * 100 || 0}%` }}
-            />
-          </div>
-          <div className="mt-2 text-sm text-gray-400">
-            {state.remainingParticipants} participants remaining
-          </div>
-        </div>
-
-        {/* Current Item */}
-        <div className="mb-8 p-6 bg-gray-800 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Current Item</h2>
-          {state.currentItem ? (
-            <div className="flex gap-6">
-              {state.currentItem.imageUrl && (
-                <img
-                  src={state.currentItem.imageUrl}
-                  alt={state.currentItem.name}
-                  className="w-32 h-32 object-cover rounded-lg"
-                />
-              )}
-              <div className="flex-1">
-                <h3 className="text-2xl font-bold">{state.currentItem.name}</h3>
-                <p className="text-gray-400">Order: #{state.currentItem.order}</p>
-                {state.currentItem.winner && (
-                  <div className="mt-2 p-2 bg-green-600 rounded">
-                    Winner: {state.currentItem.winner.name}
-                    {state.currentItem.winner.identifier && (
-                      <span className="text-green-200"> ({state.currentItem.winner.identifier})</span>
-                    )}
-                  </div>
-                )}
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label htmlFor="itemName" className="block text-sm font-medium mb-2">
+                Item Name
+              </label>
+              <input
+                type="text"
+                id="itemName"
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+                className="w-full px-4 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                placeholder="Enter item name"
+                disabled={isLoading}
+              />
             </div>
-          ) : (
-            <p className="text-gray-400">No items available</p>
-          )}
-        </div>
+            <div>
+              <label htmlFor="winnerName" className="block text-sm font-medium mb-2">
+                Winner Name
+              </label>
+              <input
+                type="text"
+                id="winnerName"
+                value={winnerName}
+                onChange={(e) => setWinnerName(e.target.value)}
+                className="w-full px-4 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                placeholder="Enter winner's name"
+                disabled={isLoading}
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading || !itemName.trim() || !winnerName.trim()}
+            className={`w-full px-8 py-4 ${isEditMode ? 'bg-blue-500 hover:bg-blue-600' : 'bg-yellow-500 hover:bg-yellow-600'} disabled:opacity-50 rounded-lg text-xl font-bold text-black transition`}
+          >
+            {isEditMode ? 'Update Record' : 'Record Winner'}
+          </button>
+        </form>
 
-        {/* Control Buttons */}
+        {/* Navigation Buttons */}
         <div className="flex justify-center gap-4 mb-8">
           <button
             onClick={handlePrevious}
@@ -146,13 +197,6 @@ export default function AgentPage() {
             className="px-8 py-4 bg-gray-600 hover:bg-gray-700 disabled:opacity-50 rounded-lg text-xl transition"
           >
             ← Previous
-          </button>
-          <button
-            onClick={handleRaffle}
-            disabled={isLoading || state.currentItem?.winner !== null}
-            className="px-12 py-4 bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 rounded-lg text-xl font-bold text-black transition"
-          >
-            🎲 RAFFLE
           </button>
           <button
             onClick={handleNext}
@@ -165,29 +209,27 @@ export default function AgentPage() {
 
         {/* History */}
         <div className="p-6 bg-gray-800 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Winner History</h2>
+          <h2 className="text-xl font-semibold mb-4">Winner History ({state.history.length})</h2>
           {state.history.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-700">
-                    <th className="text-left p-2">Order</th>
+                    <th className="text-left p-2">#</th>
                     <th className="text-left p-2">Item</th>
                     <th className="text-left p-2">Winner</th>
                     <th className="text-left p-2">Time</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {state.history.map((item) => (
-                    <tr key={item.id} className="border-b border-gray-700">
-                      <td className="p-2">#{item.order}</td>
+                  {state.history.map((item, index) => (
+                    <tr
+                      key={item.id}
+                      className={`border-b border-gray-700 ${state.currentItem?.id === item.id ? 'bg-gray-700' : ''}`}
+                    >
+                      <td className="p-2">{state.history.length - index}</td>
                       <td className="p-2">{item.name}</td>
-                      <td className="p-2">
-                        {item.winner?.name}
-                        {item.winner?.identifier && (
-                          <span className="text-gray-400"> ({item.winner.identifier})</span>
-                        )}
-                      </td>
+                      <td className="p-2">{item.winner?.name}</td>
                       <td className="p-2 text-gray-400">
                         {item.raffledAt && new Date(item.raffledAt).toLocaleTimeString()}
                       </td>
@@ -197,7 +239,7 @@ export default function AgentPage() {
               </table>
             </div>
           ) : (
-            <p className="text-gray-400">No items raffled yet</p>
+            <p className="text-gray-400">No winners recorded yet</p>
           )}
         </div>
       </div>

@@ -8,33 +8,35 @@ export default function DisplayPage() {
   const [state, setState] = useState<RaffleState | null>(null)
   const [showWinner, setShowWinner] = useState(false)
   const [isRevealing, setIsRevealing] = useState(false)
-  const previousWinnerRef = useRef<number | null>(null)
+  const seenWinnerIdsRef = useRef<Set<number>>(new Set())
 
   useEffect(() => {
     const socket = getSocket()
 
     socket.on('sync-state', (newState: RaffleState) => {
-      // Check if there's a new winner
+      // Check if there's a new winner we haven't seen before
       const currentWinnerId = newState.currentItem?.winner?.id
-      const hadPreviousWinner = previousWinnerRef.current === currentWinnerId
+      const isNewWinner = currentWinnerId && !seenWinnerIdsRef.current.has(currentWinnerId)
 
-      if (currentWinnerId && !hadPreviousWinner) {
-        // New winner - trigger reveal animation
+      if (isNewWinner) {
+        // New winner - trigger reveal animation and confetti
         setIsRevealing(true)
 
         setTimeout(() => {
           setIsRevealing(false)
           setShowWinner(true)
           setState(newState)
-          previousWinnerRef.current = currentWinnerId
+          seenWinnerIdsRef.current.add(currentWinnerId)
 
-          // Trigger celebration
+          // Trigger celebration only for first time
           triggerConfetti()
         }, 2000) // Reveal duration
       } else {
         setState(newState)
         setShowWinner(!!currentWinnerId)
-        previousWinnerRef.current = currentWinnerId || null
+        if (currentWinnerId) {
+          seenWinnerIdsRef.current.add(currentWinnerId)
+        }
       }
     })
 
@@ -83,24 +85,8 @@ export default function DisplayPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 text-white flex">
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center p-8">
-        {state.status === 'completed' ? (
-          <div className="text-center">
-            <h1 className="text-6xl font-bold mb-4">🎉 Raffle Complete! 🎉</h1>
-            <p className="text-2xl text-gray-300">Thank you for participating!</p>
-          </div>
-        ) : state.currentItem ? (
+        {state.currentItem ? (
           <div className="text-center max-w-2xl">
-            {/* Item Image */}
-            {state.currentItem.imageUrl && (
-              <div className="mb-8">
-                <img
-                  src={state.currentItem.imageUrl}
-                  alt={state.currentItem.name}
-                  className="w-80 h-80 object-cover rounded-2xl shadow-2xl mx-auto"
-                />
-              </div>
-            )}
-
             {/* Item Name */}
             <h1 className="text-5xl font-bold mb-8">{state.currentItem.name}</h1>
 

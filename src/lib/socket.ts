@@ -43,7 +43,6 @@ export interface RaffleState {
   currentItem: RaffleItem | null
   history: RaffleItem[]
   status: 'waiting' | 'raffling' | 'completed'
-  remainingParticipants: number
   progress: {
     current: number
     total: number

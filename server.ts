@@ -33,10 +33,20 @@ app.prepare().then(() => {
     const state = await getRaffleState()
     socket.emit('sync-state', state)
 
-    // Handle raffle event
-    socket.on('raffle', async () => {
+    // Handle record-winner event (creates item + winner together)
+    socket.on('record-winner', async (data: { itemName: string, winnerName: string }) => {
       try {
-        const result = await performRaffle()
+        const result = await recordWinner(data.itemName, data.winnerName)
+        io.emit('sync-state', result)
+      } catch (error) {
+        socket.emit('error', { message: (error as Error).message })
+      }
+    })
+
+    // Handle update-winner event (updates existing item + winner)
+    socket.on('update-winner', async (data: { itemId: number, itemName: string, winnerName: string }) => {
+      try {
+        const result = await updateWinner(data.itemId, data.itemName, data.winnerName)
         io.emit('sync-state', result)
       } catch (error) {
         socket.emit('error', { message: (error as Error).message })
@@ -111,12 +121,8 @@ async function getRaffleState() {
     orderBy: { raffledAt: 'desc' }
   })
 
-  const remainingParticipants = await prisma.participant.count({
-    where: { hasWon: false }
-  })
-
   const totalItems = await prisma.item.count()
-  const raffledItems = await prisma.item.count({
+  const assignedItems = await prisma.item.count({
     where: { winnerId: { not: null } }
   })
 
@@ -124,59 +130,78 @@ async function getRaffleState() {
     currentItem,
     history,
     status: raffleState.status,
-    remainingParticipants,
-    progress: { current: raffledItems, total: totalItems }
+    progress: { current: assignedItems, total: totalItems }
   }
 }
 
-async function performRaffle() {
-  const raffleState = await prisma.raffleState.findFirst()
-  if (!raffleState || !raffleState.currentItemId) {
-    throw new Error('No item to raffle')
-  }
-
-  // Check if current item already has a winner
-  const currentItem = await prisma.item.findUnique({
-    where: { id: raffleState.currentItemId }
+async function recordWinner(itemName: string, winnerName: string) {
+  // Get the next order number
+  const lastItem = await prisma.item.findFirst({
+    orderBy: { order: 'desc' }
   })
+  const nextOrder = (lastItem?.order || 0) + 1
 
-  if (currentItem?.winnerId) {
-    throw new Error('Item already raffled')
-  }
-
-  // Get eligible participants (those who haven't won)
-  const eligibleParticipants = await prisma.participant.findMany({
-    where: { hasWon: false }
-  })
-
-  if (eligibleParticipants.length === 0) {
-    throw new Error('No eligible participants remaining')
-  }
-
-  // Select random winner
-  const randomIndex = Math.floor(Math.random() * eligibleParticipants.length)
-  const winner = eligibleParticipants[randomIndex]
-
-  // Update item with winner
-  await prisma.item.update({
-    where: { id: raffleState.currentItemId },
+  // Create participant
+  const winner = await prisma.participant.create({
     data: {
+      name: winnerName,
+      hasWon: true
+    }
+  })
+
+  // Create item with winner
+  const item = await prisma.item.create({
+    data: {
+      name: itemName,
+      order: nextOrder,
       winnerId: winner.id,
       raffledAt: new Date()
     }
   })
 
-  // Mark participant as having won
-  await prisma.participant.update({
-    where: { id: winner.id },
-    data: { hasWon: true }
+  // Update raffle state to point to new item
+  let raffleState = await prisma.raffleState.findFirst()
+  if (raffleState) {
+    await prisma.raffleState.update({
+      where: { id: raffleState.id },
+      data: { currentItemId: item.id }
+    })
+  } else {
+    await prisma.raffleState.create({
+      data: {
+        currentItemId: item.id,
+        status: 'waiting'
+      }
+    })
+  }
+
+  return getRaffleState()
+}
+
+async function updateWinner(itemId: number, itemName: string, winnerName: string) {
+  // Get the item
+  const item = await prisma.item.findUnique({
+    where: { id: itemId },
+    include: { winner: true }
   })
 
-  // Update raffle state
-  await prisma.raffleState.update({
-    where: { id: raffleState.id },
-    data: { status: 'raffling' }
+  if (!item) {
+    throw new Error('Item not found')
+  }
+
+  // Update item name
+  await prisma.item.update({
+    where: { id: itemId },
+    data: { name: itemName }
   })
+
+  // Update winner name
+  if (item.winnerId) {
+    await prisma.participant.update({
+      where: { id: item.winnerId },
+      data: { name: winnerName }
+    })
+  }
 
   return getRaffleState()
 }
@@ -197,18 +222,15 @@ async function moveToNextItem() {
   })
 
   if (!nextItem) {
-    // No more items, raffle is complete
+    // No more items, clear current item for new entry
     await prisma.raffleState.update({
       where: { id: raffleState.id },
-      data: { status: 'completed' }
+      data: { currentItemId: null }
     })
   } else {
     await prisma.raffleState.update({
       where: { id: raffleState.id },
-      data: {
-        currentItemId: nextItem.id,
-        status: 'waiting'
-      }
+      data: { currentItemId: nextItem.id }
     })
   }
 
@@ -244,15 +266,11 @@ async function moveToPreviousItem() {
 }
 
 async function resetRaffle() {
-  // Reset all items
-  await prisma.item.updateMany({
-    data: { winnerId: null, raffledAt: null }
-  })
+  // Delete all items
+  await prisma.item.deleteMany()
 
-  // Reset all participants
-  await prisma.participant.updateMany({
-    data: { hasWon: false }
-  })
+  // Delete all participants (they're created on the fly)
+  await prisma.participant.deleteMany()
 
   // Reset raffle state to first item
   const firstItem = await prisma.item.findFirst({ orderBy: { order: 'asc' } })
