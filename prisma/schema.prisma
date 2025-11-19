@@ -1,0 +1,42 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Item {
+  id         Int       @id @default(autoincrement())
+  name       String
+  imageUrl   String?
+  order      Int
+  winnerId   Int?
+  raffledAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  winner     Participant? @relation(fields: [winnerId], references: [id])
+
+  @@index([order])
+}
+
+model Participant {
+  id         Int      @id @default(autoincrement())
+  name       String
+  identifier String?
+  hasWon     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  wonItems   Item[]
+}
+
+model RaffleState {
+  id            Int     @id @default(autoincrement())
+  currentItemId Int?
+  status        String  @default("waiting") // waiting, raffling, completed
+}
