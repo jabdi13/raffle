@@ -19,12 +19,12 @@ export function createDatabasePool(connectionString: string = process.env.DATABA
   if (isRDS) {
     sslConfig = {
       rejectUnauthorized: true,
-      ca: fs.readFileSync(path.join(process.cwd(), 'certs', 'aws-rds-global-bundle.pem')).toString()
+      ca: process.env.AWS_RDS_CA_CERT || fs.readFileSync(path.join(process.cwd(), 'certs', 'aws-rds-global-bundle.pem')).toString()
     }
   } else if (isAiven) {
     sslConfig = {
       rejectUnauthorized: true,
-      ca: fs.readFileSync(path.join(process.cwd(), 'certs', 'aiven-ca.pem')).toString()
+      ca: process.env.AIVEN_CA_CERT || fs.readFileSync(path.join(process.cwd(), 'certs', 'aiven-ca.pem')).toString()
     }
   }
 
