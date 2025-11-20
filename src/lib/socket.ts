@@ -4,7 +4,8 @@ let socket: Socket | null = null
 
 export const getSocket = (): Socket => {
   if (!socket) {
-    socket = io({
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin
+    socket = io(socketUrl, {
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,

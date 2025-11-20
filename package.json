@@ -4,11 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "ts-node --project tsconfig.server.json server.ts",
+    "dev:socket": "ts-node --project tsconfig.server.json socketio-server.ts",
+    "dev:split": "concurrently \"npm run dev:next\" \"npm run dev:socket\"",
+    "dev:next": "next dev",
     "build": "next build",
     "start": "NODE_ENV=production ts-node --project tsconfig.server.json server.ts",
+    "start:socket": "NODE_ENV=production ts-node --project tsconfig.server.json socketio-server.ts",
     "lint": "eslint",
     "seed": "ts-node --project tsconfig.server.json prisma/seed.ts",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "node -r dotenv/config $(which prisma) migrate deploy",
+    "prisma:studio": "node -r dotenv/config $(which prisma) studio"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.0.0",
@@ -29,6 +35,7 @@
     "@types/pg": "^8.15.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "prisma": "^7.0.0",

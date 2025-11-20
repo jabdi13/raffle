@@ -1,14 +1,14 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { createDatabasePool } from './db-config'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({
-    connectionString: process.env.DATABASE_URL
-  })
+  const pool = createDatabasePool()
+  const adapter = new PrismaPg(pool)
   return new PrismaClient({ adapter })
 }
 
