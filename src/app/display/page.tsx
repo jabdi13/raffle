@@ -76,7 +76,7 @@ export default function DisplayPage() {
   if (!state) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 text-white flex items-center justify-center">
-        <div className="text-2xl animate-pulse">Connecting...</div>
+        <div className="text-2xl animate-pulse">Conectando...</div>
       </div>
     )
   }
@@ -87,71 +87,61 @@ export default function DisplayPage() {
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         {state.currentItem ? (
           <div className="text-center max-w-2xl">
-            {/* Item Name */}
-            <h1 className="text-5xl font-bold mb-8">{state.currentItem.name}</h1>
-
             {/* Winner Section */}
+            <h1 className="text-8xl font-bold mb-8">{state.currentItem.winner?.name}</h1>
+
+            {/* Item Name */}
             <div className="min-h-[200px] flex items-center justify-center">
               {isRevealing ? (
                 <div className="text-center">
                   <div className="text-4xl animate-bounce mb-4">🥁</div>
-                  <div className="text-2xl animate-pulse">Selecting winner...</div>
+                  <div className="text-2xl animate-pulse">Seleccionando ganador...</div>
                 </div>
-              ) : showWinner && state.currentItem.winner ? (
+              ) : showWinner && state.currentItem.name ? (
                 <div className="animate-fade-in">
-                  <div className="text-2xl text-yellow-400 mb-2">🏆 WINNER 🏆</div>
-                  <div className="text-6xl font-bold text-yellow-300 mb-2">
-                    {state.currentItem.winner.name}
+                  <div className="text-3xl text-yellow-400 mb-2">🎁 Premio 🎁</div>
+                  <div className="text-8xl font-bold text-yellow-300 mb-2">
+                    {state.currentItem.name}
                   </div>
-                  {state.currentItem.winner.identifier && (
-                    <div className="text-xl text-gray-300">
-                      ({state.currentItem.winner.identifier})
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="text-2xl text-gray-400 animate-pulse">
-                  Waiting for raffle...
+                  Esperando la rifa...
                 </div>
               )}
             </div>
           </div>
         ) : (
           <div className="text-center">
-            <h1 className="text-4xl font-bold mb-4">No Items Available</h1>
-            <p className="text-gray-300">Please add items to start the raffle</p>
-          </div>
-        )}
-
-        {/* Progress indicator */}
-        {state.progress.total > 0 && (
-          <div className="mt-8 text-center">
-            <div className="text-lg text-gray-300">
-              Item {state.progress.current + 1} of {state.progress.total}
-            </div>
+            <h1 className="text-4xl font-bold mb-4">No hay elementos aun</h1>
+            <p className="text-gray-300">Agrega elementos para comenzar</p>
           </div>
         )}
       </div>
 
       {/* History Sidebar */}
-      <div className="w-80 bg-black/30 p-6 overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Winner History</h2>
+      <div className="w-[35%] bg-black/30 p-6 overflow-y-auto text-center max-h-screen">
+        {/* <h2 className="text-6xl font-bold mb-4">Historial de ganadores</h2> */}
         {state.history.length > 0 ? (
           <div className="space-y-3">
-            {state.history.map((item) => (
+            {state.history.slice(0, 5).map((item) => (
               <div
                 key={item.id}
-                className="p-3 bg-white/10 rounded-lg"
+                className={`p-6 rounded-lg ${
+                  item.id === state.currentItem?.id
+                    ? 'bg-yellow-500/30 ring-2 ring-yellow-400'
+                    : 'bg-white/10'
+                }`}
               >
-                <div className="font-semibold">{item.name}</div>
-                <div className="text-sm text-yellow-400">
-                  {item.winner?.name}
+                <div className="font-semibold text-5xl">{item.winner?.name}</div>
+                <div className="font-semibold text-5xl text-yellow-400">
+                  Premio: {item.name}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-gray-400 text-sm">No winners yet</p>
+          <p className="text-gray-400 text-sm">No hay ganadores aun</p>
         )}
       </div>
 
