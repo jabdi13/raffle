@@ -1,0 +1,14 @@
+# Nixpacks configuration for Railway deployment
+# Specifies Node.js version compatible with Prisma 7
+
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npx prisma generate"]
+
+[start]
+cmd = "npm run start:socket"
