@@ -2,7 +2,7 @@
 # Specifies Node.js version compatible with Prisma 7 (requires 20.19+ or 22.12+)
 
 [variables]
-NIXPACKS_NODE_VERSION = "20"
+NIXPACKS_NODE_VERSION = "20.19.5"
 
 [phases.install]
 cmds = ["npm ci"]
