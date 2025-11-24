@@ -50,19 +50,20 @@ export default function DisplayPage() {
     const end = Date.now() + duration
 
     const frame = () => {
+      // Christmas colors: red, green, gold, white
       confetti({
-        particleCount: 3,
+        particleCount: 4,
         angle: 60,
         spread: 55,
         origin: { x: 0 },
-        colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff']
+        colors: ['#dc2626', '#16a34a', '#fbbf24', '#ffffff', '#b91c1c']
       })
       confetti({
-        particleCount: 3,
+        particleCount: 4,
         angle: 120,
         spread: 55,
         origin: { x: 1 },
-        colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff']
+        colors: ['#dc2626', '#16a34a', '#fbbf24', '#ffffff', '#b91c1c']
       })
 
       if (Date.now() < end) {
@@ -75,44 +76,58 @@ export default function DisplayPage() {
 
   if (!state) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 text-white flex items-center justify-center">
-        <div className="text-2xl animate-pulse">Conectando...</div>
+      <div className="min-h-screen bg-no-repeat text-white flex items-center justify-center relative overflow-hidden" style={{ backgroundImage: "url('/images/fondo_navidad.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
+        <div className="text-2xl animate-pulse">
+          <span className="mr-2">🎄</span>
+          Conectando...
+          <span className="ml-2">🎄</span>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 text-white flex">
+    <div className="min-h-screen bg-no-repeat text-white flex relative overflow-hidden" style={{ backgroundImage: "url('/images/fondo_navidad.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
+      {/* Snowflakes */}
+      <div className="snowflakes" aria-hidden="true">
+        {[...Array(15)].map((_, i) => (
+          <div key={i} className="snowflake">❄</div>
+        ))}
+      </div>
+
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
         {state.currentItem ? (
           <div className="text-center max-w-2xl">
             {/* Winner Section */}
-            <h1 className="text-8xl font-bold mb-8">{state.currentItem.winner?.name}</h1>
+            <h1 className="text-8xl font-bold mb-8 text-outline">{state.currentItem.winner?.name}</h1>
 
             {/* Item Name */}
             <div className="min-h-[200px] flex items-center justify-center">
               {isRevealing ? (
                 <div className="text-center">
-                  <div className="text-4xl animate-bounce mb-4">🥁</div>
+                  <div className="text-6xl animate-bounce mb-4">🎅</div>
                   <div className="text-2xl animate-pulse">Seleccionando ganador...</div>
                 </div>
               ) : showWinner && state.currentItem.name ? (
                 <div className="animate-fade-in">
-                  <div className="text-3xl text-yellow-400 mb-2">🎁 Premio 🎁</div>
-                  <div className="text-8xl font-bold text-yellow-300 mb-2">
+                  <div className="text-3xl text-green-400 mb-2">🎁 Premio 🎁</div>
+                  <div className="text-8xl font-bold text-amber-300 mb-2 text-outline">
                     {state.currentItem.name}
                   </div>
                 </div>
               ) : (
-                <div className="text-2xl text-gray-400 animate-pulse">
+                <div className="text-2xl text-gray-300 animate-pulse">
+                  <span className="mr-2">⭐</span>
                   Esperando la rifa...
+                  <span className="ml-2">⭐</span>
                 </div>
               )}
             </div>
           </div>
         ) : (
           <div className="text-center">
+            <div className="text-6xl mb-4">🎄</div>
             <h1 className="text-4xl font-bold mb-4">No hay elementos aun</h1>
             <p className="text-gray-300">Agrega elementos para comenzar</p>
           </div>
@@ -120,8 +135,7 @@ export default function DisplayPage() {
       </div>
 
       {/* History Sidebar */}
-      <div className="w-[35%] bg-black/30 p-6 overflow-y-auto text-center max-h-screen">
-        {/* <h2 className="text-6xl font-bold mb-4">Historial de ganadores</h2> */}
+      <div className="w-[35%] bg-black/40 p-6 overflow-y-auto text-center max-h-screen relative z-10 border-l-4 border-green-600">
         {state.history.length > 0 ? (
           <div className="space-y-3">
             {state.history.slice(0, 5).map((item) => (
@@ -129,23 +143,26 @@ export default function DisplayPage() {
                 key={item.id}
                 className={`p-6 rounded-lg ${
                   item.id === state.currentItem?.id
-                    ? 'bg-yellow-500/30 ring-2 ring-yellow-400'
-                    : 'bg-white/10'
+                    ? 'bg-red-600/40 ring-2 ring-amber-400'
+                    : 'bg-green-900/40'
                 }`}
               >
                 <div className="font-semibold text-5xl">{item.winner?.name}</div>
-                <div className="font-semibold text-5xl text-yellow-400">
-                  Premio: {item.name}
+                <div className="font-semibold text-5xl text-amber-300">
+                  {item.name}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-gray-400 text-sm">No hay ganadores aun</p>
+          <div className="text-gray-400">
+            <div className="text-4xl mb-2">🎁</div>
+            <p>No hay ganadores aun</p>
+          </div>
         )}
       </div>
 
-      {/* CSS for fade-in animation */}
+      {/* CSS for animations */}
       <style jsx global>{`
         @keyframes fade-in {
           from {
@@ -159,6 +176,59 @@ export default function DisplayPage() {
         }
         .animate-fade-in {
           animation: fade-in 0.5s ease-out;
+        }
+        .text-outline {
+          -webkit-text-stroke: 3px #000;
+          text-shadow:
+            3px 3px 0 #000,
+            -3px -3px 0 #000,
+            3px -3px 0 #000,
+            -3px 3px 0 #000,
+            3px 0 0 #000,
+            -3px 0 0 #000,
+            0 3px 0 #000,
+            0 -3px 0 #000;
+        }
+        .snowflakes {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 1;
+        }
+        .snowflake {
+          position: absolute;
+          top: -40px;
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 3rem;
+          animation: fall linear infinite;
+        }
+        .snowflake:nth-child(1) { left: 5%; animation-duration: 8s; animation-delay: 0s; font-size: 2.5rem; }
+        .snowflake:nth-child(2) { left: 15%; animation-duration: 12s; animation-delay: 1s; font-size: 3.5rem; }
+        .snowflake:nth-child(3) { left: 25%; animation-duration: 10s; animation-delay: 2s; font-size: 3rem; }
+        .snowflake:nth-child(4) { left: 35%; animation-duration: 14s; animation-delay: 0.5s; font-size: 4rem; }
+        .snowflake:nth-child(5) { left: 45%; animation-duration: 9s; animation-delay: 3s; font-size: 2.5rem; }
+        .snowflake:nth-child(6) { left: 55%; animation-duration: 11s; animation-delay: 1.5s; font-size: 3.2rem; }
+        .snowflake:nth-child(7) { left: 65%; animation-duration: 13s; animation-delay: 2.5s; font-size: 3.8rem; }
+        .snowflake:nth-child(8) { left: 75%; animation-duration: 10s; animation-delay: 0s; font-size: 3rem; }
+        .snowflake:nth-child(9) { left: 85%; animation-duration: 8s; animation-delay: 4s; font-size: 2.5rem; }
+        .snowflake:nth-child(10) { left: 95%; animation-duration: 12s; animation-delay: 2s; font-size: 3.5rem; }
+        .snowflake:nth-child(11) { left: 10%; animation-duration: 15s; animation-delay: 1s; font-size: 3rem; }
+        .snowflake:nth-child(12) { left: 30%; animation-duration: 9s; animation-delay: 3.5s; font-size: 2.8rem; }
+        .snowflake:nth-child(13) { left: 50%; animation-duration: 11s; animation-delay: 0.5s; font-size: 3.6rem; }
+        .snowflake:nth-child(14) { left: 70%; animation-duration: 14s; animation-delay: 2s; font-size: 3.2rem; }
+        .snowflake:nth-child(15) { left: 90%; animation-duration: 10s; animation-delay: 1s; font-size: 3rem; }
+        @keyframes fall {
+          0% {
+            transform: translateY(-20px) rotate(0deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0.3;
+          }
         }
       `}</style>
     </div>
