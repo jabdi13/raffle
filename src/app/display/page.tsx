@@ -90,13 +90,23 @@ export default function DisplayPage() {
     <div className="min-h-screen bg-no-repeat text-white flex relative overflow-hidden" style={{ backgroundImage: "url('/images/fondo_navidad.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
       {/* Snowflakes */}
       <div className="snowflakes" aria-hidden="true">
-        {[...Array(15)].map((_, i) => (
+        {[...Array(30)].map((_, i) => (
           <div key={i} className="snowflake">❄</div>
         ))}
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
+      <div className="flex-1 flex flex-col items-center p-8 relative z-10">
+        {/* Logo - Top Center of Main Content */}
+        <div className="bg-white p-3 rounded-lg mb-8 mt-4" style={{ filter: 'drop-shadow(0rem 0rem 3rem #F2EAC7)' }}>
+          <img
+            src="/images/Recurso 4A@4x.png"
+            alt="ISSSSPEA Logo"
+            className="h-16"
+          />
+        </div>
+
+        <div className="flex-1 flex items-center justify-center">
         {state.currentItem ? (
           <div className="text-center max-w-2xl">
             {/* Winner Section */}
@@ -132,6 +142,7 @@ export default function DisplayPage() {
             <p className="text-gray-300">Agrega elementos para comenzar</p>
           </div>
         )}
+        </div>
       </div>
 
       {/* History Sidebar */}
@@ -220,6 +231,21 @@ export default function DisplayPage() {
         .snowflake:nth-child(13) { left: 50%; animation-duration: 11s; animation-delay: 0.5s; font-size: 3.6rem; }
         .snowflake:nth-child(14) { left: 70%; animation-duration: 14s; animation-delay: 2s; font-size: 3.2rem; }
         .snowflake:nth-child(15) { left: 90%; animation-duration: 10s; animation-delay: 1s; font-size: 3rem; }
+        .snowflake:nth-child(16) { left: 8%; animation-duration: 13s; animation-delay: 0.3s; font-size: 2.8rem; }
+        .snowflake:nth-child(17) { left: 18%; animation-duration: 9s; animation-delay: 2.5s; font-size: 3.4rem; }
+        .snowflake:nth-child(18) { left: 28%; animation-duration: 11s; animation-delay: 1.2s; font-size: 2.6rem; }
+        .snowflake:nth-child(19) { left: 38%; animation-duration: 14s; animation-delay: 3.8s; font-size: 3.8rem; }
+        .snowflake:nth-child(20) { left: 48%; animation-duration: 10s; animation-delay: 0.8s; font-size: 3.1rem; }
+        .snowflake:nth-child(21) { left: 58%; animation-duration: 12s; animation-delay: 2.2s; font-size: 2.9rem; }
+        .snowflake:nth-child(22) { left: 68%; animation-duration: 8s; animation-delay: 1.8s; font-size: 3.5rem; }
+        .snowflake:nth-child(23) { left: 78%; animation-duration: 15s; animation-delay: 0.2s; font-size: 2.7rem; }
+        .snowflake:nth-child(24) { left: 88%; animation-duration: 9s; animation-delay: 3.2s; font-size: 3.3rem; }
+        .snowflake:nth-child(25) { left: 98%; animation-duration: 11s; animation-delay: 1.5s; font-size: 3rem; }
+        .snowflake:nth-child(26) { left: 12%; animation-duration: 13s; animation-delay: 2.8s; font-size: 2.5rem; }
+        .snowflake:nth-child(27) { left: 22%; animation-duration: 10s; animation-delay: 0.6s; font-size: 3.6rem; }
+        .snowflake:nth-child(28) { left: 42%; animation-duration: 14s; animation-delay: 3.5s; font-size: 2.8rem; }
+        .snowflake:nth-child(29) { left: 62%; animation-duration: 9s; animation-delay: 1.1s; font-size: 3.2rem; }
+        .snowflake:nth-child(30) { left: 82%; animation-duration: 12s; animation-delay: 2.6s; font-size: 3.4rem; }
         @keyframes fall {
           0% {
             transform: translateY(-20px) rotate(0deg);
