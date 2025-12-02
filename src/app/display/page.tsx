@@ -77,7 +77,7 @@ export default function DisplayPage() {
   if (!state) {
     return (
       <div className="min-h-screen bg-no-repeat text-white flex items-center justify-center relative overflow-hidden" style={{ backgroundImage: "url('/images/fondo_navidad.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
-        <div className="text-2xl animate-pulse">
+        <div className="text-5xl animate-pulse">
           <span className="mr-2">🎄</span>
           Conectando...
           <span className="ml-2">🎄</span>
@@ -97,12 +97,17 @@ export default function DisplayPage() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center p-8 relative z-10">
-        {/* Logo - Top Center of Main Content */}
-        <div className="bg-white p-3 rounded-lg mb-8 mt-4" style={{ filter: 'drop-shadow(0rem 0rem 3rem #F2EAC7)' }}>
+        {/* Logos - Top Center of Main Content */}
+        <div className="flex items-center gap-8" style={{ filter: 'drop-shadow(0rem 0rem 3rem #F2EAC7)' }}>
           <img
             src="/images/Recurso 4A@4x.png"
             alt="ISSSSPEA Logo"
-            className="h-16"
+            className="h-28 bg-white p-4 rounded-lg mb-8 mt-4"
+          />
+          <img
+            src="/images/CasaDelPensionado-Logotipo.png"
+            alt="Casa Del Pensionado Logo"
+            className="h-28 bg-white p-0 rounded-lg mb-8 mt-4"
           />
         </div>
 
@@ -110,7 +115,7 @@ export default function DisplayPage() {
         {state.currentItem ? (
           <div className="text-center max-w-2xl">
             {/* Winner Section */}
-            <h1 className="text-8xl font-bold mb-8 text-outline">{state.currentItem.winner?.name}</h1>
+            <h1 className="text-9xl font-bold mb-8 text-outline">{state.currentItem.winner?.name}</h1>
 
             {/* Item Name */}
             <div className="min-h-[200px] flex items-center justify-center">
@@ -121,8 +126,8 @@ export default function DisplayPage() {
                 </div>
               ) : showWinner && state.currentItem.name ? (
                 <div className="animate-fade-in">
-                  <div className="text-3xl text-green-400 mb-2">🎁 Premio 🎁</div>
-                  <div className="text-8xl font-bold text-amber-300 mb-2 text-outline">
+                  <div className="text-7xl text-green-400 mb-2">🎁 Premio 🎁</div>
+                  <div className="text-9xl font-bold text-amber-300 mb-2 text-outline">
                     {state.currentItem.name}
                   </div>
                 </div>
@@ -146,7 +151,7 @@ export default function DisplayPage() {
       </div>
 
       {/* History Sidebar */}
-      <div className="w-[35%] bg-black/40 p-6 overflow-y-auto text-center max-h-screen relative z-10 border-l-4 border-green-600">
+      <div className="w-[35%] bg-black p-6 overflow-y-auto text-center max-h-screen relative z-10 border-l-4 border-green-600">
         {state.history.length > 0 ? (
           <div className="space-y-3">
             {state.history.slice(0, 5).map((item) => (
@@ -158,8 +163,8 @@ export default function DisplayPage() {
                     : 'bg-green-900/40'
                 }`}
               >
-                <div className="font-semibold text-5xl">{item.winner?.name}</div>
-                <div className="font-semibold text-5xl text-amber-300">
+                <div className="font-semibold text-7xl">{item.winner?.name}</div>
+                <div className="font-semibold text-7xl text-amber-300">
                   {item.name}
                 </div>
               </div>
